@@ -1,0 +1,224 @@
+{% extends "base.html" %}
+
+{% block title %}Configure Tenant Features{% endblock %}
+
+{% block content %}
+    <div class="main-content">
+        <div class="panel-card">
+            <h4>Configure Tenant Features</h4>
+
+            {# Tenant selection form - relies on JS for submitting the change #}
+            <form method="GET" action="{{ url_for('configure_features_page') }}" class="mb-3">
+                <div class="form-group">
+                    <label for="tenantSelect">Tenant <span class="required-star">*</span></label>
+                    {# Removed onchange="this.form.submit()" as JavaScript now handles the redirect #}
+                    <select class="form-select" id="tenantSelect" name="tenant_id" required>
+                        <option value="">Select Tenant</option>
+                        {% for tenant in tenants %}
+                            <option value="{{ tenant.tenant_id }}" {% if tenant.tenant_id == selected_tenant_id %}selected{% endif %}>
+                                {{ tenant.tenant_name }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </form>
+
+            {% if selected_tenant_id %}
+                <h5 style="margin-top: 20px;">Features for Tenant: <span class="text-primary">{{ display_tenant_name }}</span></h5>
+
+                {# Form for submitting feature changes #}
+                <form id="featureConfigForm" method="POST" action="{{ url_for('configure_features_post') }}">
+                    <input type="hidden" name="tenant_id" value="{{ selected_tenant_id }}">
+                    <input type="hidden" id="enabled_feature_ids_input" name="enabled_feature_ids">
+                    <input type="hidden" id="disabled_feature_ids_input" name="disabled_feature_ids">
+
+                    <div class="feature-drag-drop-container">
+                        {# CORRECTED: This is the ONLY Enabled Features Panel #}
+                        <div class="feature-list-panel">
+                            <div class="list-header">Enabled Features</div>
+                            <ul id="enabledFeaturesList" class="preview-list">
+                                {# These lists will be populated by JavaScript (AJAX) #}
+                            </ul>
+                            {# Message for when no enabled features are loaded/present - controlled by JS #}
+                            <p id="enabledNoFeaturesMessage" class="no-features-message" style="display: none;">
+                                No enabled features to display.
+                            </p>
+                        </div>
+
+                        {# CORRECTED: This is the ONLY Disabled Features Panel #}
+                        <div class="feature-list-panel">
+                            <div class="list-header">Disabled Features</div>
+                            <ul id="disabledFeaturesList" class="preview-list">
+                                {# These lists will be populated by JavaScript (AJAX) #}
+                            </ul>
+                            {# Message for when no disabled features are loaded/present - controlled by JS #}
+                            <p id="disabledNoFeaturesMessage" class="no-features-message" style="display: none;">
+                                No disabled features to display.
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="submit" class="btn submit-btn">Save Configuration</button>
+                    </div>
+                </form>
+            {% else %}
+                <div class="alert alert-info mt-3" role="alert">
+                    Please select a tenant from the dropdown above to configure their features.
+                </div>
+            {% endif %}
+
+        </div>
+    </div>
+{% endblock %}
+
+{% block styles %}
+    {{ super() }} {# Keep existing styles from base.html #}
+    <style>
+        /* General layout for the main content area */
+        .main-content {
+            padding: 20px;
+            max-width: 1200px; /* Adjust as needed for overall page width */
+            margin: 0 auto; /* Center the main content */
+        }
+
+        .panel-card {
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+            margin-bottom: 30px;
+        }
+
+        /* Flexbox Container for Enabled/Disabled Lists */
+        .feature-drag-drop-container {
+            display: flex;
+            gap: 20px; /* Space between the two lists */
+            margin-top: 20px;
+            /* Important: flex-wrap: nowrap; will force them side-by-side even if overflowing.
+               Use with caution as it can cause horizontal scrollbars.
+               Alternatively, keep flex-wrap: wrap; but ensure parent width. */
+            flex-wrap: wrap; /* Allows wrapping on smaller screens, recommended for responsiveness */
+            justify-content: center; /* Centers the panels if there's extra space */
+            align-items: flex-start; /* Aligns items to the top if they have different heights */
+        }
+
+        /* Individual Feature List Panels */
+        .feature-list-panel {
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 15px;
+            background-color: #fcfcfc;
+            /* flex-grow: 1: Allows panel to grow and take up available space
+               flex-shrink: 1: Allows panel to shrink if needed
+               flex-basis: calc(50% - 10px): Aims for roughly 50% of parent width, accounting for gap */
+            flex: 1 1 calc(50% - 10px);
+            min-width: 280px; /* Minimum width before they are forced to wrap */
+            max-width: calc(50% - 10px); /* Prevents one panel from becoming too wide */
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            box-sizing: border-box; /* Ensures padding and border are included in the width */
+        }
+
+        /* Media Query for Responsiveness: Stack columns on smaller screens */
+        @media (max-width: 700px) { /* Adjust breakpoint as needed (e.g., 600px, 768px) */
+            .feature-drag-drop-container {
+                flex-direction: column; /* Stack vertically */
+                align-items: center; /* Center stacked items */
+            }
+            .feature-list-panel {
+                flex: 1 1 100%; /* Take full width when stacked */
+                max-width: 100%; /* Ensure it doesn't exceed 100% width */
+            }
+        }
+
+
+        /* Remaining CSS from your file */
+        .list-header {
+            font-weight: bold;
+            margin-bottom: 15px;
+            font-size: 1.1em;
+            color: #333;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
+        }
+        .preview-list {
+            min-height: 250px; /* Ensures lists have a visible height even when empty */
+            padding: 0;
+            margin: 0;
+            list-style: none;
+        }
+        .feature-item {
+            background-color: #ffffff;
+            border: 1px solid #dcdcdc;
+            border-radius: 5px;
+            padding: 10px 15px;
+            margin-bottom: 8px;
+            cursor: grab; /* Indicates draggable */
+            box-shadow: 0 1px 2px rgba(0,0,0,0.03);
+            transition: background-color 0.2s ease, box-shadow 0.2s ease;
+        }
+        .feature-item:hover {
+            background-color: #f5f5f5;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.08);
+        }
+        .feature-item:active {
+            cursor: grabbing;
+        }
+        .sortable-ghost { /* Class for the dragged item placeholder */
+            opacity: 0.4;
+            background-color: #f0f0f0;
+            border: 1px dashed #aaa;
+        }
+        /* Adjusted the ID-based selectors for the no-features messages */
+        #enabledNoFeaturesMessage,
+        #disabledNoFeaturesMessage {
+            color: #888;
+            text-align: center;
+            margin-top: 50px;
+        }
+        /* Flash message styling (if not already in base.html) */
+        .flash-message { padding: 10px; margin-bottom: 10px; border-radius: 4px; }
+        .flash-message.success { background-color: #d4edda; color: #155724; border-color: #c3e6cb; }
+        .flash-message.warning { background-color: #fff3cd; color: #856404; border-color: #ffeeba; }
+        .flash-message.danger { background-color: #f8d7da; color: #721c24; border-color: #f5c6cb; }
+
+        /* Optional: Add basic styling for form elements if not in base.html/Bootstrap */
+        .form-group label {
+            font-weight: bold;
+            display: block;
+            margin-bottom: 5px;
+            color: #555;
+        }
+        .form-select {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box; /* Include padding and border in element's total width/height */
+        }
+        .btn.submit-btn {
+            background-color: #007bff;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1em;
+            margin-top: 20px;
+        }
+        .btn.submit-btn:hover {
+            background-color: #0056b3;
+        }
+        .required-star {
+            color: red;
+            margin-left: 2px;
+        }
+    </style>
+{% endblock %}
+
+
+{% block scripts %}
+    {{ super() }} {# Keep existing scripts from base.html #}
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.14.0/Sortable.min.js"></script>
+    <script src="{{ url_for('static', filename='js/features.js') }}"></script>
+{% endblock %}
