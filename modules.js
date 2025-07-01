@@ -77,6 +77,7 @@ document.addEventListener('DOMContentLoaded', async function () {
             const res = await fetch(`/api/products/${selectedProductId}/modules?branch_id=${selectedBranchId}`);
             if(!res.ok) throw new Error(`Status ${res.status}`);
             const modules = await res.json();
+            console.log("Fetched modules:", modules);
             allAvailableModules = modules.map(m => ({id:m.id, name:m.name, is_configured: m.is_configured}));
             allAvailableModules.forEach(m => {
                 if(m.is_configured) initialConfiguredIds.add(m.id);
@@ -98,9 +99,11 @@ document.addEventListener('DOMContentLoaded', async function () {
     }
 
     function renderModuleCheckboxes(search = ''){
+        console.log("All available modules:", allAvailableModules);
         const term = search.trim().toLowerCase();
         const list = allAvailableModules
             .filter(m => m.name && m.name.toLowerCase().includes(term))
+
             .sort((a,b)=>{
                 const seqDiff = getSeq(a.id) - getSeq(b.id);
                 return seqDiff !== 0 ? seqDiff : a.name.localeCompare(b.name);
@@ -111,6 +114,8 @@ document.addEventListener('DOMContentLoaded', async function () {
             moduleCheckboxesContainer.innerHTML = '<div class="list-group-item px-2 border-0 text-muted">No matching modules.</div>';
             return;
         }
+        
+        console.log("Filtered list:", list);
 
         list.forEach(m=>{
             const checked = currentlySelectedIds.has(m.id);

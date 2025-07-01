@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+
+{% block title %}All Products{% endblock %}
+
+{% block content %}
+  <h2>All Product Details</h2>
+
+  <table class="table table-bordered table-striped">
+    <thead>
+      <tr>
+        <th>Product ID</th>
+        <th>Name</th>
+        <th>Code</th>
+        <th>Description</th>
+        <th>Tag</th>
+        <th>Sequence</th>
+        <th>Parent Product</th>
+        <th>Is Inbound</th>
+        <th>Product Tag</th>
+        <th>Supported File Formats</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for product in products %}
+      <tr>
+        <td>{{ product.product_id }}</td>
+        <td>{{ product.name or '-' }}</td>
+        <td>{{ product.code or '-' }}</td>
+        <td>{{ product.description or '-' }}</td>
+        <td>{{ product.tag or '-' }}</td>
+        <td>{{ product.sequence or '-' }}</td>
+        <td>
+          {% if product.parent_product %}
+            {{ product.parent_product.name }}
+          {% else %}
+            <em>None</em>
+          {% endif %}
+        </td>
+        <td>{{ 'Yes' if product.is_inbound else 'No' }}</td>
+        <td>
+          {% if product.product_tag %}
+            {{ product.product_tag.name }}
+          {% else %}
+            <em>None</em>
+          {% endif %}
+        </td>
+        <td>{{ product.supported_file_formats or '-' }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+{% endblock %}

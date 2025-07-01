@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+
+{% block title %}Update Product Module{% endblock %}
+
+{% block content %}
+  <h2>Update Product Module</h2>
+
+  <form method="POST" action="">
+    {{ form.hidden_tag() }}
+
+    {{ form.module_id() }}
+    {{ form.product_id() }}
+
+    <div class="mb-3">
+      {{ form.code.label(class="form-label") }}
+      {{ form.code(class="form-control") }}
+      {% for error in form.code.errors %}
+        <div class="text-danger">{{ error }}</div>
+      {% endfor %}
+    </div>
+
+    <div class="mb-3">
+      {{ form.sequence.label(class="form-label") }}
+      {{ form.sequence(class="form-control") }}
+      {% for error in form.sequence.errors %}
+        <div class="text-danger">{{ error }}</div>
+      {% endfor %}
+    </div>
+
+    <button type="submit" class="btn btn-primary">Update</button>
+    <a href="{{ url_for('index') }}" class="btn btn-secondary">Cancel</a>
+  </form>
+{% endblock %}

@@ -1,13 +1,15 @@
 {% extends "base.html" %}
 
-{% block title %}{{ form_title or 'Add Branch' }}{% endblock %}
+{% block title %}Update Branch{% endblock %}
 
 {% block content %}
-  <h2>{{ form_title or 'Add Branch' }}</h2>
+  <h2>Update Branch</h2>
 
   <form method="POST" action="">
     {{ form.hidden_tag() }}
-    {{ form.tenant_id() }}
+
+    {{ form.tenant_id }}
+
     <div class="mb-3">
       {{ form.name.label(class="form-label") }}
       {{ form.name(class="form-control") }}
@@ -48,7 +50,7 @@
       {% endfor %}
     </div>
 
-    <button type="submit" class="btn btn-primary">Submit</button>
+    <button type="submit" class="btn btn-primary">Update</button>
     <a href="{{ url_for('web_root.web_general.index_get') }}" class="btn btn-secondary">Cancel</a>
   </form>
 {% endblock %}

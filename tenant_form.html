@@ -1,17 +1,41 @@
 {% extends "base.html" %}
 
-{% block title %}{{ form_title or 'Add Branch' }}{% endblock %}
+{% block title %}Tenant Form{% endblock %}
 
 {% block content %}
-  <h2>{{ form_title or 'Add Branch' }}</h2>
+  <h2>{{ form_title }}</h2>
 
   <form method="POST" action="">
     {{ form.hidden_tag() }}
-    {{ form.tenant_id() }}
+
     <div class="mb-3">
-      {{ form.name.label(class="form-label") }}
-      {{ form.name(class="form-control") }}
-      {% for error in form.name.errors %}
+      {{ form.organization_code.label(class="form-label") }}
+      {{ form.organization_code(class="form-control") }}
+      {% for error in form.organization_code.errors %}
+        <div class="text-danger">{{ error }}</div>
+      {% endfor %}
+    </div>
+
+    <div class="mb-3">
+      {{ form.tenant_name.label(class="form-label") }}
+      {{ form.tenant_name(class="form-control") }}
+      {% for error in form.tenant_name.errors %}
+        <div class="text-danger">{{ error }}</div>
+      {% endfor %}
+    </div>
+
+    <div class="mb-3">
+      {{ form.sub_domain.label(class="form-label") }}
+      {{ form.sub_domain(class="form-control") }}
+      {% for error in form.sub_domain.errors %}
+        <div class="text-danger">{{ error }}</div>
+      {% endfor %}
+    </div>
+
+    <div class="mb-3">
+      {{ form.default_currency.label(class="form-label") }}
+      {{ form.default_currency(class="form-control") }}
+      {% for error in form.default_currency.errors %}
         <div class="text-danger">{{ error }}</div>
       {% endfor %}
     </div>
@@ -33,16 +57,8 @@
     </div>
 
     <div class="mb-3">
-      {{ form.code.label(class="form-label") }}
-      {{ form.code(class="form-control") }}
-      {% for error in form.code.errors %}
-        <div class="text-danger">{{ error }}</div>
-      {% endfor %}
-    </div>
-
-    <div class="mb-3">
       {{ form.country_id.label(class="form-label") }}
-      {{ form.country_id(class="form-select") }}
+      {{ form.country_id(class="form-control") }}
       {% for error in form.country_id.errors %}
         <div class="text-danger">{{ error }}</div>
       {% endfor %}

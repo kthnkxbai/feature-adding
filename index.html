@@ -8,7 +8,7 @@
     <h3 class="mb-4">Configure Product Modules</h3>
 
 
-    <form id="configForm" method="POST" action="{{ url_for('index_post') }}">
+    <form id="configForm" method="POST" action="{{ url_for('web_root.web_general.index_post') }}">
 
         {# Tenant Management Section #}
         <div class="mb-3">
@@ -20,7 +20,7 @@
                         value="{{ tenant.tenant_id }}"
                         data-org-code="{{ tenant.organization_code }}"
                         data-sub-domain="{{ tenant.sub_domain }}">
-                        {{ tenant.name or tenant.organization_code }}
+                        {{ tenant.tenant_name or tenant.organization_code }}
                     </option>
                 {% endfor %}
             </select>
@@ -47,7 +47,8 @@
             <select id="branchSelect" name="branch_id" class="form-select">
                 <option value="">-- Select Branch --</option>
                 {% for branch in branches %}
-                    <option value="{{ branch.branch_id }}" {% if branch.id == selected_branch_id %}selected{% endif %}>
+                    <option value="{{ branch.branch_id }}" {% if branch.branch_id == selected_branch_id %}selected{% endif %}>
+
                         {{ branch.name }}
                     </option>
                 {% endfor %}
