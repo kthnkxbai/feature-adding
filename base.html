@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Clear Trade{% endblock %}</title>
+
+    {# Link to Bootstrap CSS (Crucial for standard look and components) #}
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    {# Link to Font Awesome for icons #}
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+
+    <style>
+        /* --- GLOBAL CUSTOM STYLES (Apply to all pages, overriding Bootstrap where necessary) --- */
+        :root {
+            --darker-blue: #0056b3; /* Custom variable for your theme color */
+            --primary-color: #007bff; /* Bootstrap primary blue */
+            --secondary-color: #6c757d; /* Bootstrap gray */
+            --success-color: #28a745;
+            --info-color: #17a2b8;
+            --warning-color: #ffc107;
+            --danger-color: #dc3545;
+            --light-bg: #f8f9fa;
+            --dark-text: #343a40;
+            --border-color: #dee2e6;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f2f5; /* Light grey background */
+            margin: 0;
+            padding: 0;
+            line-height: 1.6;
+            color: #333;
+        }
+
+        /* Header Bar - Your custom design */
+        .header-bar {
+            background-color: var(--darker-blue);
+            color: white;
+            padding: 10px 20px;
+            display: flex;
+            align-items: center;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .header-title {
+            font-size: 1.2rem;
+            font-weight: bold;
+            margin-right: 30px;
+        }
+
+        .header-tabs {
+            display: flex;
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .header-tabs li {
+            padding: 8px 15px;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            transition: all 0.3s ease;
+        }
+
+        .header-tabs li a {
+            color: white;
+            text-decoration: none;
+            padding-bottom: 5px;
+            transition: all 0.3s ease;
+            font-weight: normal;
+            font-size: 1rem;
+        }
+
+        .header-tabs li a:hover {
+            color: #f0f0f0;
+        }
+
+        .header-tabs li.active {
+            border-bottom-color: white;
+            font-weight: bold;
+        }
+
+        .header-tabs li:hover:not(.active) {
+            background-color: rgba(255,255,255,0.1);
+        }
+
+        /* Main content container */
+        .container {
+            max-width: 1200px; /* Max width for your main content area */
+            margin: 20px auto; /* Top/bottom margin, auto left/right for centering */
+            padding: 0 15px; /* Add some padding on sides for smaller screens */
+            box-sizing: border-box; /* Include padding in element's total width */
+        }
+
+        /* Specific style for panel-card, assuming it's a reusable element for forms/content blocks */
+        .panel-card {
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            padding: 25px;
+            width: 100%;
+            max-width: 900px; /* Common max-width for internal forms/panels */
+            margin: 0 auto; /* Center the panel card within its parent */
+            box-sizing: border-box;
+        }
+
+        .panel-card h4 {
+            color: #333;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
+        }
+
+        /* Submit Button (custom theme color) */
+        .submit-btn {
+            background-color: var(--darker-blue);
+            color: white;
+            border: none; /* Override potential Bootstrap border */
+            padding: 10px 25px;
+            border-radius: 5px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+        }
+
+        .submit-btn:hover {
+            background-color: #003f80; /* Darker shade on hover */
+        }
+
+        /* Flash Message Styling (Leveraging Bootstrap alerts) */
+        /* Flask's flash messages can send categories like 'success', 'danger', 'info', 'warning' */
+        .flash-message {
+            margin-bottom: 1rem; /* Consistent spacing below alerts */
+        }
+
+        /* Specific style for required star if not already handled by Bootstrap */
+        .required-star {
+            color: red;
+            margin-left: 2px;
+        }
+
+        /* --- NEW STYLES FOR MODULE CONFIGURATION FORM ELEMENTS --- */
+
+        /* Labels - Ensure good spacing and readability */
+        label.form-label { /* Use Bootstrap's .form-label for consistency */
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600; /* Slightly bolder labels for emphasis */
+            color: var(--dark-text);
+        }
+
+        /* Select and Input fields - mostly handled by Bootstrap's .form-control and .form-select */
+        /* But specifically for multi-select to ensure sufficient height */
+        select[multiple] {
+            min-height: 150px; /* Ensure multi-select is tall enough to show multiple options */
+            resize: vertical; /* Allows users to resize the height */
+        }
+
+        /* Styles for the Configured Modules Preview Box */
+        #configured_modules_preview {
+            border: 1px solid var(--primary-color); /* Blue border using primary color variable */
+            padding: 1rem;
+            margin-bottom: 1.5rem; /* Space below the box */
+            background-color: #eaf6ff; /* A lighter shade of primary for background */
+            border-radius: 0.5rem; /* More rounded corners */
+            box-shadow: 0 2px 4px rgba(0,0,0,0.08); /* Subtle shadow for depth */
+        }
+
+        #configured_modules_preview h4 {
+            margin-top: 0;
+            margin-bottom: 1rem;
+            color: var(--primary-color); /* Heading color matches border */
+            font-size: 1.15rem;
+        }
+
+        #preview_message {
+            font-style: italic;
+            color: var(--secondary-color); /* Grey for messages */
+            margin-bottom: 1rem;
+        }
+
+        #preview_list {
+            list-style: none; /* Remove default bullet points */
+            padding: 0;
+            margin: 0;
+        }
+
+        #preview_list li {
+            padding: 0.5rem 0;
+            border-bottom: 1px dotted rgba(0, 123, 255, 0.4); /* Dotted blue line, using rgba for transparency */
+            color: var(--dark-text);
+        }
+
+        #preview_list li:last-child {
+            border-bottom: none; /* No border for the last item in the list */
+        }
+        .module-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.5rem;
+            margin-bottom: 0.25rem;
+            border: 1px solid #e2e8f0;
+            border-radius: 0.375rem;
+            background-color: #f7fafc;
+        }
+        .remove-module-btn {
+            cursor: pointer;
+            color: #ef4444; /* Red color for delete */
+            margin-left: 0.5rem;
+            font-size: 1rem;
+        }
+        .remove-module-btn:hover {
+            color: #dc2626;
+        }
+        /* Block for page-specific styles, to be defined in extending templates */
+        {% block custom_styles %}{% endblock %}
+
+    </style>
+    {% block head %}{% endblock %}
+</head>
+<body>
+    <div class="header-bar">
+        <div class="header-title">Clear Trade</div>
+        <ul class="header-tabs">
+            <li id="tenantConfigTab" {% if request.endpoint == 'tenant_feature_configure' %}class="active"{% endif %}>
+                <a href="{{ url_for('configure_features_page') }}"> Tenant Feature </a>
+            </li>
+            <li {% if request.endpoint == 'index_get' %}class="active"{% endif %}>
+                <a href="{{ url_for('index_get') }}">Product Module </a>
+            </li>
+        </ul>
+    </div>
+    <main class="container">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }} flash-message" role="alert">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        {% block content %}
+        {% endblock %}
+    </main>
+
+    {# Bootstrap Bundle JS (includes Popper for dropdowns/tooltips) #}
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    {# SortableJS (needed by both index.html and tf.html, so keep global for convenience) #}
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.14.0/Sortable.min.js"></script>
+
+    {% block scripts %}
+    {% endblock %}
+</body>
+</html>
