@@ -1,0 +1,1246 @@
+openapi: 3.0.0
+info:
+  title: Clear Trade API
+  version: 1.0.0
+  description: API for managing Tenants, Branches, Products, Modules, and their configurations within the Clear Trade system.
+
+servers:
+  - url: http://127.0.0.1:5000
+    description: Local development server
+
+tags:
+  - name: Tenants
+    description: Operations related to Tenant management.
+  - name: Branches
+    description: Operations related to Branch management.
+  - name: Products
+    description: Operations related to Product management.
+  - name: Modules
+    description: Operations related to Modules and their availability for branch-products.
+  - name: Features
+    description: API for managing various Tenant Features configurations.
+
+paths:
+  /api/tenants:
+
+    get:
+      summary: Get all Tenants (for selection)
+      tags:
+        - Tenants
+      responses:
+        '200':
+          description: A list of all tenants with basic info (ID, Name)
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: integer
+                      example: 1
+                    name:
+                      type: string
+                      example: "Global Corp"
+                  required:
+                    - id
+                    - name
+    post:
+      summary: Create a new Tenant
+      tags:
+        - Tenants
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TenantCreateRequest'
+      responses:
+        '201':
+          description: Tenant created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Tenant created successfully"
+                  tenant_id:
+                    type: integer
+                    example: 1
+        '400':
+          description: Bad request (missing fields, invalid country_id)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/tenants/{tenant_id}/{organization_code}/{sub_domain}:
+ 
+    get:
+      summary: Get Tenant details by ID, Org Code, and Sub-domain
+      tags:
+        - Tenants
+      parameters:
+        - name: tenant_id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int32
+          description: Numeric ID of the Tenant
+        - name: organization_code
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Organization code of the Tenant
+        - name: sub_domain
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Sub-domain of the Tenant
+      responses:
+        '200':
+          description: Tenant details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TenantDetails'
+        '404':
+          description: Tenant not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    put:
+      summary: Update an existing Tenant
+      tags:
+        - Tenants
+      parameters:
+        - name: tenant_id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int32
+          description: Numeric ID of the Tenant
+        - name: organization_code
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Organization code of the Tenant
+        - name: sub_domain
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Sub-domain of the Tenant
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TenantUpdateRequest'
+      responses:
+        '200':
+          description: Tenant updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Tenant updated successfully"
+        '400':
+          description: Bad request (missing fields, invalid country_id)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Tenant not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    delete:
+      summary: Delete a Tenant
+      tags:
+        - Tenants
+      parameters:
+        - name: tenant_id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int32
+          description: Numeric ID of the Tenant
+        - name: organization_code
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Organization code of the Tenant
+        - name: sub_domain
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Sub-domain of the Tenant
+      responses:
+        '200':
+          description: Tenant deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Tenant deleted successfully."
+                  tenant_id:
+                    type: integer
+                    example: 1
+                  organization_code:
+                    type: string
+                    example: "ORG1"
+                  sub_domain:
+                    type: string
+                    example: "sub1"
+        '404':
+          description: Tenant not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/branches/create/{tenant_id}/{organization_code}/{sub_domain}:
+    post:
+      summary: Create a new Branch for a Tenant
+      tags:
+        - Branches
+      parameters:
+        - name: tenant_id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int32
+          description: Numeric ID of the owning Tenant
+        - name: organization_code
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Organization code of the owning Tenant
+        - name: sub_domain
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Sub-domain of the owning Tenant
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BranchCreateRequest'
+      responses:
+        '201':
+          description: Branch created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Branch created successfully"
+                  branch_id:
+                    type: integer
+                    example: 101
+        '400':
+          description: Bad request (missing/invalid fields, invalid country_id)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Tenant not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: Conflict (e.g., duplicate branch code for tenant)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Unexpected server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/branches/{branch_id}:
+    put:
+      summary: Update an existing Branch
+      tags:
+        - Branches
+      parameters:
+        - name: branch_id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int32
+          description: Numeric ID of the Branch to update
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BranchUpdateRequest'
+      responses:
+        '200':
+          description: Branch updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Branch updated successfully"
+                  branch_id:
+                    type: integer
+                    example: 101
+        '400':
+          description: Bad request (no input, invalid format, invalid country_id)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Branch not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: Conflict (e.g., duplicate branch code)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Unexpected server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    delete:
+      summary: Delete a Branch
+      tags:
+        - Branches
+      parameters:
+        - name: branch_id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int32
+          description: Numeric ID of the Branch to delete
+      responses:
+        '200':
+          description: Branch deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Branch with ID 101 deleted successfully."
+        '404':
+          description: Branch not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: Conflict (e.g., foreign key constraint preventing deletion)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/products/{product_id}:
+    get:
+      summary: Get details of a single Product
+      tags:
+        - Products
+      parameters:
+        - name: product_id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int32
+          description: Numeric ID of the Product
+      responses:
+        '200':
+          description: Product details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProductDetails'
+        '404':
+          description: Product not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    put:
+      summary: Update an existing Product
+      tags:
+        - Products
+      parameters:
+        - name: product_id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int32
+          description: Numeric ID of the Product to update
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProductUpdateRequest'
+      responses:
+        '200':
+          description: Product updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Product updated"
+                  product_id:
+                    type: integer
+                    example: 201
+                  name:
+                    type: string
+                    example: "Updated Product Name"
+        '400':
+          description: Bad request (no input data)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Product not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    delete:
+      summary: Delete a Product
+      tags:
+        - Products
+      parameters:
+        - name: product_id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int32
+          description: Numeric ID of the Product to delete
+      responses:
+        '200':
+          description: Product deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Product with ID 201 deleted successfully."
+        '404':
+          description: Product not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/products:
+    post: # Added POST method for creating products
+      summary: Create a new Product
+      tags:
+        - Products
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProductCreateRequest'
+      responses:
+        '201':
+          description: Product created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Product created"
+                  product_id:
+                    type: integer
+                    example: 202
+                  name:
+                    type: string
+                    example: "New Product"
+        '400':
+          description: Bad request (no input data)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    get:
+      summary: Get all Products
+      tags:
+        - Products
+      responses:
+        '200':
+          description: A list of all products
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ProductListItem'
+
+  /api/products/{product_id}/modules:
+    get:
+      summary: Get available Modules for a Product
+      tags:
+        - Modules
+      parameters:
+        - name: product_id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int32
+          description: Numeric ID of the Product
+        - name: branch_id
+          in: query
+          required: false
+          schema:
+            type: integer
+            format: int32
+          description: "(Optional) Numeric ID of the Branch to check configured status against."
+      responses:
+        '200':
+          description: List of available modules for the product, with configuration status.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/AvailableModule'
+        '404':
+          description: Product not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/branches/{branch_id}/products/{product_id}/configured-modules:
+    get:
+      summary: Get configured Modules for a specific Branch and Product
+      tags:
+        - Modules
+      parameters:
+        - name: branch_id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int32
+          description: Numeric ID of the Branch
+        - name: product_id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int32
+          description: Numeric ID of the Product
+      responses:
+        '200':
+          description: List of modules configured for the specified branch and product.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ConfiguredModule'
+        '404':
+          description: Branch or Product not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/tenants/{tenant_id}/branches:
+    get:
+      summary: Get Branches by Tenant
+      tags:
+        - Branches
+      parameters:
+        - name: tenant_id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int32
+          description: Numeric ID of the Tenant
+      responses:
+        '200':
+          description: "List of branches for the specified tenant. Can be empty."
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/BranchDetails'
+        '404':
+          description: Tenant not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  
+  
+
+  /api/tenant_features/{tenant_id}:
+    get:
+      summary: Get Tenant Features (Enabled/Disabled)
+      tags:
+        - Features
+      parameters:
+        - name: tenant_id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int32
+          description: Numeric ID of the Tenant
+      responses:
+        '200':
+          description: Lists enabled and disabled features for the tenant.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  enabled_features:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: integer
+                          example: 1
+                        name:
+                          type: string
+                          example: "Core Feature X"
+                  disabled_features:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: integer
+                          example: 2
+                        name:
+                          type: string
+                          example: "Optional Feature Y"
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/configurations/tenant-features:
+    post:
+      summary: Configure Tenant Features (Enable/Disable)
+      tags:
+        - Features
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ConfigureTenantFeaturesRequest'
+      responses:
+        '200':
+          description: Feature configurations updated successfully or no change required.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConfigureTenantFeaturesResponse'
+        '400':
+          description: Bad request (missing/invalid data)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+ 
+  /api/config/save-product-modules:
+    post:
+      summary: Save Product Module Configurations
+      tags:
+        - Modules
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SaveProductModulesRequest'
+          application/x-www-form-urlencoded: # Also supports form-urlencoded
+            schema:
+              $ref: '#/components/schemas/SaveProductModulesRequest'
+      responses:
+        '200':
+          description: Configuration updated successfully or no change required.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SaveProductModulesResponse'
+        '400':
+          description: Bad request (missing/invalid IDs)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Tenant, Branch, or Product not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+components:
+  schemas:
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+          example: "Missing fields: tenant_name"
+        details:
+          type: string
+          example: "Optional detailed error message"
+    TenantCreateRequest:
+      type: object
+      required:
+        - organization_code
+        - tenant_name
+        - sub_domain
+        - default_currency
+        - description
+        - status
+        - country_id
+      properties:
+        organization_code:
+          type: string
+          example: "ORGABC"
+        tenant_name:
+          type: string
+          example: "ABC Corporation"
+        sub_domain:
+          type: string
+          example: "abc"
+        default_currency:
+          type: string
+          example: "USD"
+        description:
+          type: string
+          example: "Main tenant for ABC Corp"
+        status:
+          type: string
+          enum: ["active", "inactive", "pending"]
+          example: "active"
+        country_id:
+          type: integer
+          format: int32
+          example: 1
+    TenantUpdateRequest:
+      type: object
+      required:
+        - tenant_name
+        - default_currency
+        - description
+        - status
+        - country_id
+      properties:
+        tenant_name:
+          type: string
+          example: "Updated ABC Corp Name"
+        default_currency:
+          type: string
+          example: "EUR"
+        description:
+          type: string
+          example: "Main tenant for ABC Corp (Updated)"
+        status:
+          type: string
+          enum: ["active", "inactive", "pending"]
+          example: "inactive"
+        country_id:
+          type: integer
+          format: int32
+          example: 2
+    TenantDetails:
+      type: object
+      properties:
+        tenant_id:
+          type: integer
+          example: 1
+        organization_code:
+          type: string
+          example: "ORGABC"
+        tenant_name:
+          type: string
+          example: "ABC Corporation"
+        sub_domain:
+          type: string
+          example: "abc"
+        default_currency:
+          type: string
+          example: "USD"
+        description:
+          type: string
+          example: "Main tenant for ABC Corp"
+        status:
+          type: string
+          example: "active"
+        country_id:
+          type: integer
+          example: 1
+    BranchCreateRequest:
+      type: object
+      required:
+        - name
+        - description
+        - status
+        - code
+        - country_id
+      properties:
+        name:
+          type: string
+          example: "New York Branch"
+        description:
+          type: string
+          example: "Primary branch in NYC"
+        status:
+          type: string
+          enum: ["active", "inactive"]
+          example: "active"
+        code:
+          type: string
+          pattern: "^[a-zA-Z0-9_-]+$"
+          example: "NYC01"
+        country_id:
+          type: integer
+          format: int32
+          example: 1
+    BranchUpdateRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          example: "Updated New York Branch"
+        description:
+          type: string
+          example: "Primary branch in NYC (edited)"
+        status:
+          type: string
+          enum: ["active", "inactive"]
+          example: "inactive"
+        code:
+          type: string
+          pattern: "^[a-zA-Z0-9_-]+$"
+          example: "NYC01_V2"
+        country_id:
+          type: integer
+          format: int32
+          example: 2
+    BranchDetails:
+      type: object
+      properties:
+        branch_id:
+          type: integer
+          example: 101
+        name:
+          type: string
+          example: "New York Branch"
+        description:
+          type: string
+          example: "Primary branch in NYC"
+        status:
+          type: string
+          example: "active"
+        code:
+          type: string
+          example: "NYC01"
+        country_id:
+          type: integer
+          example: 1
+        tenant_id:
+          type: integer
+          example: 1
+    ProductListItem:
+      type: object
+      properties:
+        product_id:
+          type: integer
+          example: 201
+        name:
+          type: string
+          example: "Trade Finance"
+    ProductDetails:
+      type: object
+      properties:
+        product_id:
+          type: integer
+          example: 201
+        name:
+          type: string
+          example: "Trade Finance"
+        code:
+          type: string
+          example: "TF01"
+        description:
+          type: string
+          example: "Core trade finance product"
+        tag:
+          type: string
+          example: "Fintech"
+        sequence:
+          type: integer
+          example: 10
+        parent_product_id:
+          type: integer
+          nullable: true
+          example: null
+        is_inbound:
+          type: boolean
+          example: true
+        product_tag_id:
+          type: integer
+          nullable: true
+          example: 5
+        supported_file_formats:
+          type: string
+          example: "XML,JSON"
+    ProductCreateRequest:
+      type: object
+      required:
+        - name
+        - code
+        - description
+        - tag
+        - sequence
+        - is_inbound
+      properties:
+        name:
+          type: string
+          example: "New Product"
+        code:
+          type: string
+          example: "NP01"
+        description:
+          type: string
+          example: "A brand new product offering."
+        tag:
+          type: string
+          example: "New"
+        sequence:
+          type: integer
+          example: 20
+        parent_product_id:
+          type: integer
+          nullable: true
+          description: "ID of a parent product, or 0/null if top-level."
+          example: null
+        is_inbound:
+          type: boolean
+          example: false
+        product_tag_id:
+          type: integer
+          nullable: true
+          description: "ID of an associated product tag, or 0/null."
+          example: null
+        supported_file_formats:
+          type: string
+          example: "PDF,CSV"
+    ProductUpdateRequest:
+      type: object
+      properties: # All fields are optional for update
+        name:
+          type: string
+          example: "Updated Product Name"
+        code:
+          type: string
+          example: "UPN01"
+        description:
+          type: string
+          example: "An updated description."
+        tag:
+          type: string
+          example: "Updated Category"
+        sequence:
+          type: integer
+          example: 15
+        parent_product_id:
+          type: integer
+          nullable: true
+          description: "ID of a new parent product, or 0/null."
+          example: null
+        is_inbound:
+          type: boolean
+          example: true
+        product_tag_id:
+          type: integer
+          nullable: true
+          description: "ID of a new product tag, or 0/null."
+          example: null
+        supported_file_formats:
+          type: string
+          example: "XML,PDF"
+    AvailableModule:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        name:
+          type: string
+          example: "Doc Verification"
+        is_configured:
+          type: boolean
+          example: true
+      required:
+        - id
+        - name
+        - is_configured
+    ConfiguredModule:
+      type: object
+      properties:
+        branch_id:
+          type: integer
+          example: 101
+        product_id:
+          type: integer
+          example: 201
+        module_id:
+          type: integer
+          example: 1
+        module_name:
+          type: string
+          example: "Doc Verification"
+      required:
+        - branch_id
+        - product_id
+        - module_id
+        - module_name
+    InitialConfigDataResponse:
+      type: object
+      properties:
+        tenants:
+          type: array
+          items:
+            type: object
+            properties:
+              tenant_id: { type: integer, example: 1 }
+              organization_code: { type: string, example: "ORG1" }
+              sub_domain: { type: string, example: "sub1" }
+              name: { type: string, example: "Global Tenant" }
+        branches:
+          type: array
+          items:
+            type: object
+            properties:
+              branch_id: { type: integer, example: 10 }
+              name: { type: string, example: "Main Branch" }
+              tenant_id: { type: integer, example: 1 }
+        products:
+          type: array
+          items:
+            type: object
+            properties:
+              product_id: { type: integer, example: 20 }
+              name: { type: string, example: "Trade Finance" }
+              code: { type: string, example: "TF" }
+        module_id_sequences:
+          type: object
+          additionalProperties:
+            type: integer
+          example: { "1": 10, "3": 20, "2": 30 }
+        selected_product_id:
+          type: integer
+          nullable: true
+          example: 20
+        selected_branch_id:
+          type: integer
+          nullable: true
+          example: 10
+        selected_tenant_id:
+          type: integer
+          nullable: true
+          example: 1
+        initial_selected_module_ids_str:
+          type: string
+          example: "1,2,3"
+    SaveProductModulesRequest:
+      type: object
+      required:
+        - tenant_id
+        - branch_id
+        - product_id
+        - module_ids_hidden
+      properties:
+        tenant_id:
+          type: integer
+          example: 1
+        branch_id:
+          type: integer
+          example: 101
+        product_id:
+          type: integer
+          example: 201
+        module_ids_hidden:
+          type: string
+          description: "Comma-separated string of module IDs (e.g., \"1,2,5\")."
+          example: "1,2,5"
+    SaveProductModulesResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: ["success", "info", "error"]
+          example: "success"
+        message:
+          type: string
+          example: "Configuration updated successfully for Product 'Trade' at Branch 'NY' for Tenant 'Global'. Added modules: Doc Verification."
+        modules_added:
+          type: array
+          items:
+            type: string
+          example: ["Doc Verification", "Noun Screening"]
+        modules_skipped_configured:
+          type: array
+          items:
+            type: string
+          example: ["TBML Screening"]
+        tenant_id:
+          type: integer
+          example: 1
+    ConfigureTenantFeaturesRequest:
+      type: object
+      required:
+        - tenant_id
+        - enabled_feature_ids
+        - disabled_feature_ids
+      properties:
+        tenant_id:
+          type: integer
+          example: 1
+        enabled_feature_ids:
+          type: array
+          items:
+            type: integer
+          description: "List of feature IDs to enable for the tenant."
+          example: [1, 3]
+        disabled_feature_ids:
+          type: array
+          items:
+            type: integer
+          description: "List of feature IDs to disable for the tenant."
+          example: [2]
+    ConfigureTenantFeaturesResponse:
+      type: object
+      properties:
+        message:
+          type: string
+          example: "Feature configurations updated successfully for Tenant ID 1!"
+        tenant_id:
+          type: integer
+          example: 1
+        status:
+          type: string
+          enum: ["success", "no_change"]
+          example: "success"
+

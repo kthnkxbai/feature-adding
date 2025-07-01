@@ -1,0 +1,158 @@
+{% extends "base.html" %}
+
+{% block title %}Product Module Configuration{% endblock %}
+
+{% block content %}
+
+<div class="panel-card">
+    <h3 class="mb-4">Configure Product Modules</h3>
+
+
+    <form id="configForm" method="POST" action="{{ url_for('index_post') }}">
+
+        {# Tenant Management Section #}
+        <div class="mb-3">
+            <label for="tenantSelect" class="form-label">Select Tenant</label>
+            <select id="tenantSelect" name="tenant_id" class="form-select">
+                <option value="">-- Select Tenant --</option>
+                {% for tenant in tenants %}
+                    <option
+                        value="{{ tenant.tenant_id }}"
+                        data-org-code="{{ tenant.organization_code }}"
+                        data-sub-domain="{{ tenant.sub_domain }}">
+                        {{ tenant.name or tenant.organization_code }}
+                    </option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="mb-4 d-flex flex-wrap gap-2">
+            <button id="addTenantBtn" class="btn btn-sm btn-outline-secondary" type="button" title="Add New Tenant">
+                <i class="fas fa-plus"></i> Add
+            </button>
+            <button id="editTenantBtn" class="btn btn-sm btn-outline-secondary" type="button" disabled title="Edit Tenant">
+                <i class="fas fa-pencil-alt"></i> Edit
+            </button>
+            <button id="deleteTenantBtn" class="btn btn-sm btn-outline-secondary" type="button" disabled title="Delete Tenant">
+                <i class="fas fa-trash-alt"></i> Delete
+            </button>
+            <button id="viewTenantBtn" class="btn btn-sm btn-outline-secondary" type="button" title="View Details">
+                <i class="fas fa-eye"></i> View
+            </button>
+        </div>
+
+        {# Branch Management Section #}
+        <div class="mb-3">
+            <label for="branchSelect" class="form-label">Select Branch</label>
+            <select id="branchSelect" name="branch_id" class="form-select">
+                <option value="">-- Select Branch --</option>
+                {% for branch in branches %}
+                    <option value="{{ branch.branch_id }}" {% if branch.id == selected_branch_id %}selected{% endif %}>
+                        {{ branch.name }}
+                    </option>
+                {% endfor %}
+                <option value="-1" id="noBranchesOption" style="display: none;">No branches for this tenant</option>
+            </select>
+        </div>
+
+        <div class="mb-4 d-flex flex-wrap gap-2">
+            <button id="addBranchBtn" class="btn btn-sm btn-outline-secondary" type="button" title="Add Branch">
+                <i class="fas fa-plus"></i> Add
+            </button>
+            <button id="editBranchBtn" class="btn btn-sm btn-outline-secondary" type="button" disabled title="Edit Branch">
+                <i class="fas fa-pencil-alt"></i> Edit
+            </button>
+            <button id="deleteBranchBtn" class="btn btn-sm btn-outline-secondary" disabled type="button" title="Delete Branch">
+                <i class="fas fa-trash-alt"></i> Delete
+            </button>
+            <button id="viewBranchBtn" class="btn btn-sm btn-outline-secondary" disabled type="button" title="View Branch">
+                <i class="fas fa-eye"></i> View
+            </button>
+        </div>
+
+        {# Product Management Section #}
+        <div class="mb-3">
+            <label for="productSelect" class="form-label">Select Product</label>
+            <select id="productSelect" name="product_id" class="form-select">
+                <option value="">-- Select Product --</option>
+                {% for product in products %}
+                    <option value="{{ product.product_id }}" {% if product.id == selected_product_id %}selected{% endif %}>
+                        {{ product.name or product.code }}
+                    </option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="mb-4 d-flex flex-wrap gap-2">
+            <button id="addProductBtn" class="btn btn-sm btn-outline-secondary" type="button" title="Add Product">
+                <i class="fas fa-plus"></i> Add
+            </button>
+            <button id="editProductBtn" class="btn btn-sm btn-outline-secondary" type="button" disabled title="Edit Product">
+                <i class="fas fa-pencil-alt"></i> Edit
+            </button>
+            <button id="deleteProductBtn" class="btn btn-sm btn-outline-secondary" type="button" disabled title="Delete Product">
+                <i class="fas fa-trash-alt"></i> Delete
+            </button>
+            <button id="viewProductBtn" class="btn btn-sm btn-outline-secondary" type="button" disabled title="View Product">
+                <i class="fas fa-eye"></i> View
+            </button>
+        </div>
+        
+        <div class="mb-4">
+            <label class="form-label d-block">Select Modules</label>
+            <div class="dropdown">
+                <button class="btn btn-secondary dropdown-toggle" type="button" id="moduleMultiSelectToggle" data-bs-toggle="dropdown" aria-expanded="false" disabled data-bs-display="static">
+                    <span id="selectedModuleCount">0 modules selected</span>
+                </button>
+                <div class="dropdown-menu p-2" aria-labelledby="moduleMultiSelectToggle" style="min-width: 300px;">
+                    <div class="px-2 pt-2">
+                        <input type="text" class="form-control" placeholder="Search modules..." id="moduleSearchInput" disabled>
+                    </div>
+                    <div class="px-2 pt-2">
+                        <div id="moduleCheckboxes" class="list-group list-group-flush mt-2" style="max-height: 250px; overflow-y: auto;">
+                            <div class="list-group-item px-2 border-0 text-muted">Select a Branch and Product to load modules.</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <input type="hidden" id="module_ids_hidden" name="module_ids_hidden" value="">
+        </div>
+
+        <div class="row">
+            <div class="col-md-6">
+                <h5 class="mb-3">Existing Configurations</h5>
+                <div class="list-group" id="preview-configured-modules">
+                    <div class="list-group-item text-muted">Select a Branch and Product</div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <h5 class="mb-3">New Selections / Changes</h5>
+                <div class="list-group" id="preview-new-selection-modules">
+                     <div class="list-group-item text-muted">Select a Branch and Product</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="mb-3 form-actions">
+            <button type="submit" name="action" value="submit" class="btn btn-success submit-btn">Save Configuration</button>
+        </div>
+    </form>
+    <form id="deleteTenantForm" method="POST" style="display: none;"></form>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+    window.module_id_sequences = {{ module_id_sequences | tojson | safe }};
+    window.initialSelectedModuleIdsStr = "{{ initial_selected_module_ids_str | default('') | safe }}";
+    window.branchesData = {{ branches | tojson | safe }};
+    window.selected_tenant_id_from_url = {{ selected_tenant_id_from_url | tojson | safe }};
+    window.selected_branch_id = {{ selected_branch_id | tojson | safe }};
+    window.selected_product_id = {{ selected_product_id | tojson | safe }};
+</script>
+<script src="{{ url_for('static', filename='js/tenants.js') }}"></script>
+<script src="{{ url_for('static', filename='js/branches.js') }}"></script>
+<script src="{{ url_for('static', filename='js/products.js') }}"></script>
+<script src="{{ url_for('static', filename='js/modules.js') }}"></script>
+{% endblock %}
