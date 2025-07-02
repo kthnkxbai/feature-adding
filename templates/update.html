@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+
+{% block title %}Update Tenant{% endblock %}
+
+{% block content %}
+  <h2>Update Tenant</h2>
+
+  <form method="POST" action="">
+    {{ form.hidden_tag() }}
+
+    <div class="mb-3">
+      {{ form.organization_code.label(class="form-label") }}
+      {{ form.organization_code(class="form-control") }}
+      {% for error in form.organization_code.errors %}
+        <div class="text-danger">{{ error }}</div>
+      {% endfor %}
+    </div>
+
+    <div class="mb-3">
+      {{ form.tenant_name.label(class="form-label") }}
+      {{ form.tenant_name(class="form-control") }}
+      {% for error in form.tenant_name.errors %}
+        <div class="text-danger">{{ error }}</div>
+      {% endfor %}
+    </div>
+
+    <div class="mb-3">
+      {{ form.sub_domain.label(class="form-label") }}
+      {{ form.sub_domain(class="form-control") }}
+      {% for error in form.sub_domain.errors %}
+        <div class="text-danger">{{ error }}</div>
+      {% endfor %}
+    </div>
+
+    <div class="mb-3">
+      {{ form.default_currency.label(class="form-label") }}
+      {{ form.default_currency(class="form-control") }}
+      {% for error in form.default_currency.errors %}
+        <div class="text-danger">{{ error }}</div>
+      {% endfor %}
+    </div>
+
+    <div class="mb-3">
+      {{ form.description.label(class="form-label") }}
+      {{ form.description(class="form-control") }}
+      {% for error in form.description.errors %}
+        <div class="text-danger">{{ error }}</div>
+      {% endfor %}
+    </div>
+
+    <div class="mb-3">
+      {{ form.status.label(class="form-label") }}
+      {{ form.status(class="form-select") }}
+      {% for error in form.status.errors %}
+        <div class="text-danger">{{ error }}</div>
+      {% endfor %}
+    </div>
+
+    <div class="mb-3">
+      {{ form.country_id.label(class="form-label") }}
+      {{ form.country_id(class="form-control") }}
+      {% for error in form.country_id.errors %}
+        <div class="text-danger">{{ error }}</div>
+      {% endfor %}
+    </div>
+
+    <button type="submit" class="btn btn-primary">Update</button>
+    <a href="{{ url_for('web_root.web_general.index_get') }}" class="btn btn-secondary">Cancel</a>
+  </form>
+{% endblock %}

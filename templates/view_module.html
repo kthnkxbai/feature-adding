@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+
+{% block title %}All Modules{% endblock %}
+
+{% block content %}
+  <h2>All Module Details</h2>
+
+  <table class="table table-bordered table-striped">
+    <thead>
+      <tr>
+        <th>Module ID</th>
+        <th>Name</th>
+        <th>Description</th>
+        <th>Code</th>
+        <th>Created By</th>
+        <th>Dependent Modules</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for module in modules %}
+      <tr>
+        <td>{{ module.module_id }}</td>
+        <td>{{ module.name }}</td>
+        <td>{{ module.description }}</td>
+        <td>{{ module.code }}</td>
+        <td>{{ module.created_by }}</td>
+        <td>
+          {% if module.dependent_modules %}
+            <pre>{{ module.dependent_modules | tojson(indent=2) }}</pre>
+          {% else %}
+            <em>None</em>
+          {% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+{% endblock %}

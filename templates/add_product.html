@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+
+{% block title %}{{ form_title }} Add New  Product {% endblock %}
+
+{% block content %}
+<h2>{{ form_title }}</h2>
+<form method="POST" action="">
+    {{ form.hidden_tag() }}
+
+    <div class="mb-3">
+        {{ form.name.label(class="form-label") }}
+        {{ form.name(class="form-control") }}
+    </div>
+
+    <div class="mb-3">
+        {{ form.code.label(class="form-label") }}
+        {{ form.code(class="form-control") }}
+    </div>
+
+    <div class="mb-3">
+        {{ form.description.label(class="form-label") }}
+        {{ form.description(class="form-control", rows="3") }}
+    </div>
+
+    <div class="mb-3">
+        {{ form.tag.label(class="form-label") }}
+        {{ form.tag(class="form-control") }}
+    </div>
+
+    <div class="mb-3">
+        {{ form.sequence.label(class="form-label") }}
+        {{ form.sequence(class="form-control") }}
+    </div>
+
+    <div class="mb-3">
+        {{ form.parent_product_id.label(class="form-label") }}
+        {{ form.parent_product_id(class="form-select") }}
+    </div>
+
+    <div class="mb-3">
+        {{ form.product_tag_id.label(class="form-label") }}
+        {{ form.product_tag_id(class="form-select") }}
+    </div>
+
+    <div class="form-check mb-3">
+        {{ form.is_inbound(class="form-check-input") }}
+        {{ form.is_inbound.label(class="form-check-label") }}
+    </div>
+
+    <div class="mb-3">
+        {{ form.supported_file_formats.label(class="form-label") }}
+        {{ form.supported_file_formats(class="form-control") }}
+    </div>
+
+    <button type="submit" class="btn btn-primary">Add Product</button>
+    <a href="{{ url_for('web_root.web_general.index_get') }}" class="btn btn-secondary">Cancel</a>
+
+</form>
+{% endblock %}
