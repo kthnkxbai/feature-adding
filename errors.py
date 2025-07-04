@@ -1,4 +1,3 @@
-# errors.py
 
 class ApplicationError(Exception):
     """Base class for custom application-specific errors."""
@@ -6,7 +5,7 @@ class ApplicationError(Exception):
         super().__init__(message)
         self.message = message
         self.status_code = status_code
-        self.errors = errors # For validation errors, to hold field-specific messages
+        self.errors = errors 
 
 class DatabaseOperationError(ApplicationError):
     """Error raised for general database operation failures."""
@@ -70,7 +69,6 @@ class DuplicateError(ApplicationError):
         super().__init__(message, status_code=409)
         self.field = field
 
-# Specific Duplicate Errors for better clarity
 class DuplicateOrganizationCodeError(DuplicateError):
     def __init__(self, message="Organization code already exists."):
         super().__init__(message, field="organization_code")

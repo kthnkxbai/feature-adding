@@ -23,7 +23,7 @@ from extensions import db
 from forms import TenantForm, BranchForm, ModuleForm, ProductForm, ProductModuleForm
 from routes.web import web_bp
 from routes.api import api_bp
-from schemas.message_schemas import MessageSchema  # FIXED
+from schemas.message_schemas import MessageSchema  
 from errors import ApplicationError, NotFoundError, ValidationError
 
 app = Flask(__name__)
