@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+
+{% block title %}All Tenants{% endblock %}
+
+{% block content %}
+<h2>All Tenant Details</h2>
+
+<table class="table table-bordered table-striped">
+    <thead>
+        <tr>
+            <th>Tenant ID</th>
+            <th>Organization Code</th>
+            <th>Tenant Name</th>
+            <th>Subdomain</th>
+            <th>Currency</th>
+            <th>Description</th>
+            <th>Status</th>
+            <th>Country ID</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for tenant in tenants %}
+        <tr>
+            <td>{{ tenant.tenant_id }}</td>
+            <td>{{ tenant.organization_code }}</td>
+            <td>{{ tenant.tenant_name }}</td>
+            <td>{{ tenant.sub_domain }}</td>
+            <td>{{ tenant.default_currency }}</td>
+            <td>{{ tenant.description }}</td>
+            <td>{{ tenant.status }}</td>
+            <td>{{ tenant.country_id }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

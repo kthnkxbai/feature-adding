@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+
+{% block title %}All Branches{% endblock %}
+
+{% block content %}
+<h2>All Branch Details</h2>
+
+<table class="table table-bordered table-striped">
+    <thead>
+        <tr>
+            <th>Branch ID</th>
+            <th>Tenant ID</th>
+            <th>Name</th>
+            <th>Description</th>
+            <th>Status</th>
+            <th>Code</th>
+            <th>Country ID</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for branch in branches %}
+        <tr>
+            <td>{{ branch.branch_id }}</td>
+            <td>{{ branch.tenant_id }}</td>
+            <td>{{ branch.name }}</td>
+            <td>{{ branch.description }}</td>
+            <td>{{ branch.status }}</td>
+            <td>{{ branch.code }}</td>
+            <td>{{ branch.country_id }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

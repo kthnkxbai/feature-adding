@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+
+{% block title %}Update Product{% endblock %}
+
+{% block content %}
+  <h2>Update Product</h2>
+
+  <form method="POST" action="">
+    {{ form.hidden_tag() }}
+
+    <div class="mb-3">
+      {{ form.name.label(class="form-label") }}
+      {{ form.name(class="form-control") }}
+      {% for error in form.name.errors %}
+        <div class="text-danger">{{ error }}</div>
+      {% endfor %}
+    </div>
+
+    <div class="mb-3">
+      {{ form.code.label(class="form-label") }}
+      {{ form.code(class="form-control") }}
+      {% for error in form.code.errors %}
+        <div class="text-danger">{{ error }}</div>
+      {% endfor %}
+    </div>
+
+    <div class="mb-3">
+      {{ form.description.label(class="form-label") }}
+      {{ form.description(class="form-control") }}
+      {% for error in form.description.errors %}
+        <div class="text-danger">{{ error }}</div>
+      {% endfor %}
+    </div>
+
+    <div class="mb-3">
+      {{ form.tag.label(class="form-label") }}
+      {{ form.tag(class="form-control") }}
+      {% for error in form.tag.errors %}
+        <div class="text-danger">{{ error }}</div>
+      {% endfor %}
+    </div>
+
+    <div class="mb-3">
+      {{ form.sequence.label(class="form-label") }}
+      {{ form.sequence(class="form-control") }}
+      {% for error in form.sequence.errors %}
+        <div class="text-danger">{{ error }}</div>
+      {% endfor %}
+    </div>
+
+    <div class="mb-3">
+      {{ form.parent_product_id.label(class="form-label") }}
+      {{ form.parent_product_id(class="form-select") }}
+      {% for error in form.parent_product_id.errors %}
+        <div class="text-danger">{{ error }}</div>
+      {% endfor %}
+    </div>
+
+    <div class="mb-3">
+      {{ form.product_tag_id.label(class="form-label") }}
+      {{ form.product_tag_id(class="form-select") }}
+      {% for error in form.product_tag_id.errors %}
+        <div class="text-danger">{{ error }}</div>
+      {% endfor %}
+    </div>
+
+    <div class="form-check mb-3">
+      {{ form.is_inbound(class="form-check-input") }}
+      {{ form.is_inbound.label(class="form-check-label") }}
+      {% for error in form.is_inbound.errors %}
+        <div class="text-danger">{{ error }}</div>
+      {% endfor %}
+    </div>
+
+    <div class="mb-3">
+      {{ form.supported_file_formats.label(class="form-label") }}
+      {{ form.supported_file_formats(class="form-control") }}
+      {% for error in form.supported_file_formats.errors %}
+        <div class="text-danger">{{ error }}</div>
+      {% endfor %}
+    </div>
+
+    <button type="submit" class="btn btn-primary">Update</button>
+    <a href="{{ url_for('index_gweb_root.web_general.index_getet') }}" class="btn btn-secondary">Cancel</a>
+  </form>
+{% endblock %}
