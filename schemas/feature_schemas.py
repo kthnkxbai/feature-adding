@@ -13,6 +13,6 @@ class FeatureInputSchema(FeatureBaseSchema):
 class FeatureOutputSchema(FeatureBaseSchema):
     """Schema for serializing Feature for output, with dump_only fields."""
     feature_id = fields.Integer(dump_only=True)
-    created_at = fields.DateTime(dump_only=True)
+    created_on = fields.DateTime(dump_only=True)
     updated_at = fields.DateTime(dump_only=True)
 

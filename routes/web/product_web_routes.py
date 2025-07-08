@@ -10,13 +10,15 @@ from errors import ValidationError, DuplicateProductCodeError, NotFoundError, Ap
 
 product_web_bp = Blueprint('web_product', __name__)
 
+
 @product_web_bp.route('/view')
 def view_all_products():
     """
     Web route to view all products.
     """
     try:
-        products = product_service.get_all_products() 
+        products = product_service.repository.get_all() 
+        print("Products being passed to template:", products) 
         return render_template('view_product.html', products=products)
     except ApplicationError as e:
         flash(f"Error loading products: {e.message}", "danger")
@@ -26,6 +28,7 @@ def view_all_products():
         flash(f"An unexpected error occurred: {str(e)}", "danger")
         current_app.logger.exception(f"Unexpected error in view_all_products: {e}")
         return render_template('view_product.html', products=[])
+
 
 
 @product_web_bp.route("/create", methods=["GET"])

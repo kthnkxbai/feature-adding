@@ -1,4 +1,4 @@
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
     const tenantSelect = document.getElementById('tenantSelect');
     const enabledList = document.getElementById('enabledFeaturesList');
     const disabledList = document.getElementById('disabledFeaturesList');
@@ -6,58 +6,61 @@ document.addEventListener('DOMContentLoaded', function() {
     const disabledInput = document.getElementById('disabled_feature_ids_input');
     const enabledNoFeaturesMessage = document.getElementById('enabledNoFeaturesMessage');
     const disabledNoFeaturesMessage = document.getElementById('disabledNoFeaturesMessage');
-
-    const initialSelectedTenantId = tenantSelect ? tenantSelect.value : null;
+    const featureForm = document.getElementById('featureConfigForm');
 
     let enabledSortableInstance = null;
     let disabledSortableInstance = null;
 
     function updateHiddenInputs() {
         const enabledIds = Array.from(enabledList.children)
-                               .filter(item => item.dataset.id)
-                               .map(item => item.dataset.id);
+            .filter(item => item.classList.contains('feature-item'))
+            .map(item => item.dataset.id);
         enabledInput.value = enabledIds.join(',');
-        
+
         if (enabledNoFeaturesMessage) {
-            if (enabledIds.length === 0) {
-                enabledNoFeaturesMessage.style.display = 'block';
-            } else {
-                enabledNoFeaturesMessage.style.display = 'none';
-            }
+            enabledNoFeaturesMessage.style.display = enabledIds.length === 0 ? 'block' : 'none';
         }
 
         const disabledIds = Array.from(disabledList.children)
-                                .filter(item => item.dataset.id)
-                                .map(item => item.dataset.id);
+            .filter(item => item.classList.contains('feature-item'))
+            .map(item => item.dataset.id);
         disabledInput.value = disabledIds.join(',');
 
         if (disabledNoFeaturesMessage) {
-            if (disabledIds.length === 0) {
-                disabledNoFeaturesMessage.style.display = 'block';
-            } else {
-                disabledNoFeaturesMessage.style.display = 'none';
-            }
+            disabledNoFeaturesMessage.style.display = disabledIds.length === 0 ? 'block' : 'none';
         }
+
+        console.log('Hidden Inputs Updated:');
+        console.log('Enabled:', enabledInput.value);
+        console.log('Disabled:', disabledInput.value);
     }
 
-    function populateFeatureList(listElement, features) {
+    function populateFeatureList(listElement, features, noFeaturesMsgElement) {
         listElement.innerHTML = '';
-        features.forEach(feature => {
-            const listItem = document.createElement('li');
-            listItem.classList.add('feature-item');
-            listItem.dataset.id = feature.id;
-            listItem.textContent = feature.name;
-            listElement.appendChild(listItem);
-        });
+        
+
+        if (features.length === 0) {
+            if (noFeaturesMsgElement) {
+                listElement.appendChild(noFeaturesMsgElement);
+                noFeaturesMsgElement.style.display = 'block';
+            }
+        } else {
+            if (noFeaturesMsgElement) noFeaturesMsgElement.style.display = 'none';
+            features.forEach(feature => {
+               
+
+                const listItem = document.createElement('li');
+                listItem.classList.add('feature-item');
+                listItem.dataset.id = feature.feature_id;
+                listItem.textContent = feature.name;
+                listElement.appendChild(listItem);
+            });
+        }
     }
 
     function initializeSortableLists() {
-        if (enabledSortableInstance) {
-            enabledSortableInstance.destroy();
-        }
-        if (disabledSortableInstance) {
-            disabledSortableInstance.destroy();
-        }
+        if (enabledSortableInstance) enabledSortableInstance.destroy();
+        if (disabledSortableInstance) disabledSortableInstance.destroy();
 
         enabledSortableInstance = new Sortable(enabledList, {
             group: 'features',
@@ -73,37 +76,48 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     async function fetchAndPopulateTenantFeatures(tenantId) {
-        if (enabledNoFeaturesMessage) enabledNoFeaturesMessage.style.display = 'none';
-        if (disabledNoFeaturesMessage) disabledNoFeaturesMessage.style.display = 'none';
-        
-        enabledList.innerHTML = '<li class="no-selection">Loading enabled features...</li>';
-        disabledList.innerHTML = '<li class="no-selection">Loading disabled features...</li>';
+        if (enabledNoFeaturesMessage) {
+            enabledNoFeaturesMessage.textContent = 'Loading enabled features...';
+            enabledNoFeaturesMessage.style.display = 'block';
+        }
+        if (disabledNoFeaturesMessage) {
+            disabledNoFeaturesMessage.textContent = 'Loading disabled features...';
+            disabledNoFeaturesMessage.style.display = 'block';
+        }
+        enabledList.innerHTML = '';
+        disabledList.innerHTML = '';
 
         try {
-            const response = await fetch(`/api/tenant_features/${tenantId}`);
+            const response = await fetch(`/api/tenant-features/${tenantId}`);
             if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
+                const errorData = await response.json();
+                throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
             }
             const data = await response.json();
 
-            populateFeatureList(enabledList, data.enabled_features);
-            populateFeatureList(disabledList, data.disabled_features);
-            
-            initializeSortableLists(); 
-            updateHiddenInputs(); 
-            
+            populateFeatureList(enabledList, data.enabled_features, enabledNoFeaturesMessage);
+            populateFeatureList(disabledList, data.disabled_features, disabledNoFeaturesMessage);
+
+            initializeSortableLists();
+            updateHiddenInputs();
+
         } catch (error) {
             console.error('Error fetching tenant features:', error);
-            enabledList.innerHTML = '<li class="no-selection text-danger">Error loading features.</li>';
-            disabledList.innerHTML = '<li class="no-selection text-danger">Error loading features.</li>';
-            
-            if (enabledNoFeaturesMessage) enabledNoFeaturesMessage.style.display = 'block';
-            if (disabledNoFeaturesMessage) disabledNoFeaturesMessage.style.display = 'block';
+            if (enabledNoFeaturesMessage) {
+                enabledNoFeaturesMessage.textContent = `Error loading features: ${error.message}`;
+                enabledNoFeaturesMessage.style.display = 'block';
+            }
+            if (disabledNoFeaturesMessage) {
+                disabledNoFeaturesMessage.textContent = `Error loading features: ${error.message}`;
+                disabledNoFeaturesMessage.style.display = 'block';
+            }
+            enabledList.innerHTML = '';
+            disabledList.innerHTML = '';
         }
     }
 
     if (tenantSelect) {
-        tenantSelect.addEventListener('change', function() {
+        tenantSelect.addEventListener('change', function () {
             const selectedTenantId = this.value;
             if (selectedTenantId) {
                 window.location.href = `${window.location.pathname}?tenant_id=${selectedTenantId}`;
@@ -112,18 +126,29 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
 
-        if (initialSelectedTenantId) {
-            const featureConfigForm = document.getElementById('featureConfigForm');
-            if (featureConfigForm) {
-                fetchAndPopulateTenantFeatures(initialSelectedTenantId);
-            } else {
-                console.warn("Selected tenant ID present, but featureConfigForm not found.");
+        const urlParams = new URLSearchParams(window.location.search);
+        const initialSelectedTenantIdFromUrl = urlParams.get('tenant_id');
+
+        if (initialSelectedTenantIdFromUrl) {
+            if (tenantSelect.value !== initialSelectedTenantIdFromUrl) {
+                tenantSelect.value = initialSelectedTenantIdFromUrl;
             }
+            document.getElementById('features-section').hidden = false;
+            fetchAndPopulateTenantFeatures(initialSelectedTenantIdFromUrl);
         } else {
+            document.getElementById('features-section').hidden = true;
             if (enabledNoFeaturesMessage) enabledNoFeaturesMessage.style.display = 'block';
             if (disabledNoFeaturesMessage) disabledNoFeaturesMessage.style.display = 'block';
+            enabledList.innerHTML = '';
+            disabledList.innerHTML = '';
         }
     } else {
         console.error("Tenant select dropdown (id='tenantSelect') not found. Check your HTML.");
+    }
+
+    if (featureForm) {
+        featureForm.addEventListener('submit', function (event) {
+            updateHiddenInputs();
+        });
     }
 });

@@ -28,6 +28,7 @@ class ProductService:
         """
         try:
             products = self.repository.get_all()
+           
             if minimal:
                 return self.minimal_output_schema.dump(products)
             return self.output_schema.dump(products)

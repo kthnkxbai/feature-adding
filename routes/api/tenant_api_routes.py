@@ -20,14 +20,7 @@ branches_schema = BranchBaseSchema(many=True)
 def get_all_tenants_api():
     """
     API route to retrieve all tenants (minimal info for dropdowns).
-    ---
-    responses:
-      200:
-        description: A list of minimal tenant data.
-        schema:
-          type: array
-          items:
-            $ref: '#/definitions/TenantMinimalOutputSchema'
+   
     """
     try:
         tenants = tenant_service.get_all_tenants(minimal=True)
@@ -38,6 +31,8 @@ def get_all_tenants_api():
     except Exception as e:
         current_app.logger.exception(f"Unexpected error getting all tenants via API: {str(e)}")
         return jsonify(message_schema.dump({"status": "error", "message": "Internal server error", "details": str(e), "code": 500})), 500
+
+
 
 
 @tenant_api_bp.route('/<int:tenant_id>/<organization_code>/<sub_domain>', methods=['GET'])

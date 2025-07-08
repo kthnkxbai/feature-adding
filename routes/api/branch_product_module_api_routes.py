@@ -1,13 +1,10 @@
-# routes/api/branch_product_module_api_routes.py
 from flask import Blueprint, request, jsonify, current_app
 
-# Import services and schemas
 from services.product_module_services import product_module_service
 from services.branch_product_module_services import branch_product_module_service
 from schemas.message_schemas import MessageSchema
 from schemas.branch_product_module_schemas import AvailableProductModuleOutputSchema
 
-# Import custom errors
 from errors import NotFoundError, ApplicationError, DatabaseOperationError, ProductNotFoundError, BranchNotFoundError, ProductModuleNotFoundError
 
 branch_product_module_api_bp = Blueprint('api_branch_product_module', __name__, url_prefix='/branch-product-modules')
@@ -95,7 +92,6 @@ def api_delete_branch_product_module(branch_id, product_id, module_id):
           $ref: '#/definitions/MessageSchema'
     """
     try:
-        # The service method will handle finding the product_module_id and then deleting the BPM
         result = branch_product_module_service.delete_branch_product_module_by_composite_keys(
             branch_id,
             product_id,

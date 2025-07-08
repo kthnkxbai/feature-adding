@@ -1,4 +1,3 @@
-# services/feature_service.py
 import datetime
 import logging
 
@@ -12,7 +11,7 @@ class FeatureService:
     def __init__(self):
         self.repository = feature_repository
         self.input_schema = FeatureInputSchema()
-        self.output_schema = FeatureOutputSchema(many=True) # For lists
+        self.output_schema = FeatureOutputSchema(many=True) 
 
     def get_all_features(self):
         """
@@ -35,8 +34,7 @@ class FeatureService:
         """
         try:
             feature = self.repository.get_by_id(feature_id)
-            return FeatureOutputSchema().dump(feature) # For single object
-        except FeatureNotFoundError:
+            return FeatureOutputSchema().dump(feature) 
             raise
         except DatabaseOperationError:
             raise
@@ -91,7 +89,6 @@ class FeatureService:
                 if existing_feature and existing_feature.feature_id != feature_id:
                     raise DuplicateError(f"Feature with code '{validated_data['code']}' already exists.")
 
-            # SQLAlchemy handles updated_at automatically if onupdate is set
             updated_feature_obj = self.repository.update(feature_obj, **validated_data)
             return FeatureOutputSchema().dump(updated_feature_obj)
         except ValidationError:

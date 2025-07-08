@@ -1,13 +1,12 @@
-# services/tenant_feature_service.py
 import datetime
 import logging
-import json # For handling config_json
+import json 
 
 from repositories.tenant_feature_repository import tenant_feature_repository
 from repositories.tenant_repository import tenant_repository
 from repositories.feature_repository import feature_repository
 from schemas.tenant_feature_schemas import TenantFeatureInputSchema, TenantFeatureOutputSchema, FeatureStatusOutputSchema
-from schemas.message_schemas import MessageSchema # For consistent messages
+from schemas.message_schemas import MessageSchema 
 from errors import ApplicationError, DatabaseOperationError, TenantNotFoundError, FeatureNotFoundError, DuplicateTenantFeatureError, ValidationError, NotFoundError
 
 log = logging.getLogger(__name__)
@@ -18,8 +17,8 @@ class TenantFeatureService:
         self.tenant_repo = tenant_repository
         self.feature_repo = feature_repository
         self.input_schema = TenantFeatureInputSchema()
-        self.output_schema = TenantFeatureOutputSchema(many=True) # For lists of TenantFeatures
-        self.feature_status_output_schema = FeatureStatusOutputSchema(many=True) # For list of features with status
+        self.output_schema = TenantFeatureOutputSchema(many=True) 
+        self.feature_status_output_schema = FeatureStatusOutputSchema(many=True) 
         self.message_schema = MessageSchema()
 
     def get_all_tenant_features_for_tenant(self, tenant_id):
@@ -27,8 +26,7 @@ class TenantFeatureService:
         Retrieves all TenantFeature records for a specific tenant.
         """
         try:
-            # Validate tenant existence
-            self.tenant_repo.get_by_id(tenant_id) # Will raise TenantNotFoundError if not found
+            self.tenant_repo.get_by_id(tenant_id) 
 
             tenant_features = self.repository.get_all_for_tenant(tenant_id)
             return self.output_schema.dump(tenant_features)
@@ -45,13 +43,11 @@ class TenantFeatureService:
         Returns a dictionary with 'enabled_features' and 'disabled_features' lists.
         """
         try:
-            # Validate tenant existence
-            self.tenant_repo.get_by_id(tenant_id) # Will raise TenantNotFoundError if not found
+            self.tenant_repo.get_by_id(tenant_id) 
 
-            all_features_objs = self.feature_repo.get_all() # Get all master features
+            all_features_objs = self.feature_repo.get_all() 
             existing_tenant_features_objs = self.repository.get_all_for_tenant(tenant_id)
 
-            # Create a lookup map for existing tenant features
             existing_tf_map = {tf.feature_id: tf for tf in existing_tenant_features_objs}
 
             enabled_features_data = []
@@ -60,16 +56,13 @@ class TenantFeatureService:
             for feature_obj in all_features_objs:
                 tf_entry = existing_tf_map.get(feature_obj.feature_id)
                 
-                # Determine if feature is enabled for this tenant
-                # If a TenantFeature entry exists and is_enabled is True, it's enabled.
-                # If no TenantFeature entry exists, it's considered "default enabled" or available to be enabled.
-                # If a TenantFeature entry exists and is_enabled is False, it's disabled.
-                is_enabled = True # Default assumption: available features are enabled unless explicitly disabled
+                
+                is_enabled = True 
                 if tf_entry:
                     is_enabled = tf_entry.is_enabled
 
                 feature_dict = {
-                    'id': feature_obj.feature_id,
+                    'feature_id': feature_obj.feature_id,
                     'name': feature_obj.name,
                     'is_enabled': is_enabled
                 }
@@ -79,13 +72,12 @@ class TenantFeatureService:
                 else:
                     disabled_features_data.append(feature_dict)
 
-            # Sort by name for consistent display
             enabled_features_data.sort(key=lambda x: x['name'].lower())
             disabled_features_data.sort(key=lambda x: x['name'].lower())
 
             return {
-                'enabled_features': self.feature_status_output_schema.dump(enabled_features_data),
-                'disabled_features': self.feature_status_output_schema.dump(disabled_features_data)
+                "enabled_features": enabled_features_data,  
+                "disabled_features": disabled_features_data
             }
         except (TenantNotFoundError, DatabaseOperationError, ApplicationError):
             raise
@@ -93,66 +85,88 @@ class TenantFeatureService:
             log.exception(f"Unexpected error in get_features_for_tenant_with_status({tenant_id}): {e}")
             raise ApplicationError("Failed to retrieve feature status for tenant.", status_code=500)
 
-    def update_tenant_feature_configuration(self, tenant_id: int, enabled_feature_ids: list, disabled_feature_ids: list):
+
+    def update_tenant_feature_configuration(self, tenant_id: int, submitted_enabled_feature_ids: list, submitted_disabled_feature_ids: list):
         """
         Updates the feature configurations for a specific tenant.
         This handles enabling and disabling features based on provided lists.
         """
-        try:
-            # Validate tenant existence
-            self.tenant_repo.get_by_id(tenant_id) # Will raise TenantNotFoundError if not found
+        print(f"DEBUG: TFService.update - Tenant ID: {tenant_id}")
+        print(f"DEBUG: TFService.update - Submitted Enabled IDs: {submitted_enabled_feature_ids}")
+        print(f"DEBUG: TFService.update - Submitted Disabled IDs: {submitted_disabled_feature_ids}")
 
-            # Get all existing TenantFeature entries for this tenant
-            existing_tenant_features = self.repository.get_all_for_tenant(tenant_id)
-            existing_tf_map = {tf.feature_id: tf for tf in existing_tenant_features}
+        try:
+            self.tenant_repo.get_by_id(tenant_id)
+
+            current_tenant_features_objs = self.repository.get_all_for_tenant(tenant_id)
+            existing_tf_map = {tf.feature_id: tf for tf in current_tenant_features_objs}
+
+            current_enabled_db_ids = {tf.feature_id for tf in current_tenant_features_objs if tf.is_enabled}
+            current_disabled_db_ids = {tf.feature_id for tf in current_tenant_features_objs if not tf.is_enabled}
+
+            all_master_features = self.feature_repo.get_all()
+            all_master_feature_ids = {f.feature_id for f in all_master_features}
+
+            print(f"DEBUG: TFService.update - Current DB Enabled IDs: {current_enabled_db_ids}")
+            print(f"DEBUG: TFService.update - Current DB Disabled IDs: {current_disabled_db_ids}")
+            print(f"DEBUG: TFService.update - All Master Feature IDs: {all_master_feature_ids}")
+
+            submitted_enabled_set = set(submitted_enabled_feature_ids)
+            submitted_disabled_set = set(submitted_disabled_feature_ids)
+
+            for fid in submitted_enabled_set.union(submitted_disabled_set):
+                if fid not in all_master_feature_ids:
+                    raise FeatureNotFoundError(f"Feature with ID {fid} does not exist.")
+
+            features_to_enable_in_db = submitted_enabled_set - current_enabled_db_ids
+
+            features_to_disable_in_db = submitted_disabled_set - current_disabled_db_ids
+
+            features_to_switch_to_disabled = current_enabled_db_ids.intersection(submitted_disabled_set)
+
+            features_to_switch_to_enabled = current_disabled_db_ids.intersection(submitted_enabled_set)
+
+            print(f"DEBUG: TFService.update - Features to CREATE/UPDATE to ENABLED: {features_to_enable_in_db}")
+            print(f"DEBUG: TFService.update - Features to CREATE/UPDATE to DISABLED: {features_to_disable_in_db}")
+            print(f"DEBUG: TFService.update - Features to SWITCH FROM ENABLED TO DISABLED: {features_to_switch_to_disabled}")
+            print(f"DEBUG: TFService.update - Features to SWITCH FROM DISABLED TO ENABLED: {features_to_switch_to_enabled}")
 
             updates_made = False
 
-            # Process features to be enabled
-            for feature_id in enabled_feature_ids:
-                # Validate feature existence
-                self.feature_repo.get_by_id(feature_id) # Will raise FeatureNotFoundError if not found
-
-                if feature_id in existing_tf_map:
-                    tf_entry = existing_tf_map[feature_id]
-                    if tf_entry.is_enabled is not True:
-                        tf_entry.is_enabled = True
-                        tf_entry.updated_at = datetime.datetime.utcnow()
-                        self.repository.update(tf_entry, is_enabled=True, updated_at=tf_entry.updated_at)
-                        updates_made = True
-                else:
-                    # Create new TenantFeature entry if it doesn't exist
+            for feature_id in features_to_enable_in_db.union(features_to_switch_to_enabled):
+                tf_entry = existing_tf_map.get(feature_id)
+                if not tf_entry: 
                     self.repository.create(
                         tenant_id=tenant_id,
                         feature_id=feature_id,
                         is_enabled=True,
-                        config_json=json.dumps({}), # Default empty config
-                        created_at=datetime.datetime.utcnow()
+                      
+                        created_on=datetime.datetime.utcnow()
                     )
                     updates_made = True
+                    print(f"DEBUG: TFService.update - Created new TF entry for feature {feature_id} (enabled)")
+                elif not tf_entry.is_enabled: 
+                    self.repository.update(tf_entry, is_enabled=True, updated_at=datetime.datetime.utcnow())
+                    updates_made = True
+                    print(f"DEBUG: TFService.update - Updated TF entry for feature {feature_id} (enabled from disabled)")
 
-            # Process features to be disabled
-            for feature_id in disabled_feature_ids:
-                # Validate feature existence
-                self.feature_repo.get_by_id(feature_id) # Will raise FeatureNotFoundError if not found
-
-                if feature_id in existing_tf_map:
-                    tf_entry = existing_tf_map[feature_id]
-                    if tf_entry.is_enabled is not False:
-                        tf_entry.is_enabled = False
-                        tf_entry.updated_at = datetime.datetime.utcnow()
-                        self.repository.update(tf_entry, is_enabled=False, updated_at=tf_entry.updated_at)
-                        updates_made = True
-                else:
-                    # Create new TenantFeature entry if it doesn't exist (and needs to be explicitly disabled)
+            for feature_id in features_to_disable_in_db.union(features_to_switch_to_disabled):
+                tf_entry = existing_tf_map.get(feature_id)
+                if not tf_entry: 
                     self.repository.create(
                         tenant_id=tenant_id,
                         feature_id=feature_id,
                         is_enabled=False,
-                        config_json=json.dumps({}), # Default empty config
-                        created_at=datetime.datetime.utcnow()
+               
+                        created_on=datetime.datetime.utcnow()
                     )
                     updates_made = True
+                    print(f"DEBUG: TFService.update - Created new TF entry for feature {feature_id} (disabled)")
+                elif tf_entry.is_enabled: 
+                    self.repository.update(tf_entry, is_enabled=False, updated_at=datetime.datetime.utcnow())
+                    updates_made = True
+                    print(f"DEBUG: TFService.update - Updated TF entry for feature {feature_id} (disabled from enabled)")
+
 
             if updates_made:
                 return self.message_schema.dump({"status": "success", "message": f"Feature configurations updated successfully for Tenant ID {tenant_id}!"})
@@ -165,4 +179,5 @@ class TenantFeatureService:
             log.exception(f"Unexpected error in update_tenant_feature_configuration for tenant {tenant_id}: {e}")
             raise ApplicationError("Failed to update tenant feature configuration due to an internal error.", status_code=500)
 
+ 
 tenant_feature_service = TenantFeatureService()

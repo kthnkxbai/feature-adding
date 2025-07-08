@@ -58,6 +58,8 @@ def get_tenant_features_api(tenant_id):
         current_app.logger.exception(f"Unexpected error in get_tenant_features_api for tenant {tenant_id}: {str(e)}")
         return jsonify({'status': 'error', 'message': 'An internal server error occurred', 'details': str(e)}), 500
 
+
+
 @tenant_feature_api_bp.route('/configure', methods=['POST'])
 def configure_tenant_features_api():
     """
@@ -111,7 +113,6 @@ def configure_tenant_features_api():
     enabled_feature_ids = data.get('enabled_feature_ids', [])
     disabled_feature_ids = data.get('disabled_feature_ids', [])
 
-    # Basic type validation (more detailed validation in service/schema)
     if not isinstance(selected_tenant_id, int):
         return jsonify(message_schema.dump({'status': 'error', 'message': 'tenant_id must be an integer', 'code': 400})), 400
     if not isinstance(enabled_feature_ids, list):
@@ -120,7 +121,6 @@ def configure_tenant_features_api():
         return jsonify(message_schema.dump({'status': 'error', 'message': 'disabled_feature_ids must be a list', 'code': 400})), 400
 
     try:
-        # Convert list elements to int, filtering out non-integers if any
         enabled_feature_ids = [int(fid) for fid in enabled_feature_ids if isinstance(fid, int) or (isinstance(fid, str) and fid.isdigit())]
         disabled_feature_ids = [int(fid) for fid in disabled_feature_ids if isinstance(fid, int) or (isinstance(fid, str) and fid.isdigit())]
     except ValueError:

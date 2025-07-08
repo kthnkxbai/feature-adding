@@ -1,4 +1,3 @@
-# repositories/feature_repository.py
 from .base_repository import BaseRepository
 from models import Feature
 from errors import DatabaseOperationError, FeatureNotFoundError

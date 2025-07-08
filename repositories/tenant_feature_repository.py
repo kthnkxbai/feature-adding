@@ -1,10 +1,8 @@
-# repositories/tenant_feature_repository.py
 from .base_repository import BaseRepository
 from models import TenantFeature
 from errors import DatabaseOperationError, TenantFeatureNotFoundError
 import logging
-from extensions import db # Import db for direct query
-
+from extensions import db 
 log = logging.getLogger(__name__)
 
 class TenantFeatureRepository(BaseRepository):

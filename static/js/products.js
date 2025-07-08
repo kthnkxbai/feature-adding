@@ -1,81 +1,99 @@
-(function() { 
-    document.addEventListener('DOMContentLoaded', () => {
-        const productSelect = document.getElementById('productSelect');
-        const addProductBtn = document.getElementById('addProductBtn');
-        const editProductBtn = document.getElementById('editProductBtn');
-        const deleteProductBtn = document.getElementById('deleteProductBtn');
-        const viewProductBtn = document.getElementById('viewProductBtn');
+document.addEventListener('DOMContentLoaded', () => {
+    const productSelect = document.getElementById('productSelect');
+    const addBtn = document.getElementById('addProductBtn');
+    const editBtn = document.getElementById('editProductBtn');
+    const delBtn = document.getElementById('deleteProductBtn');
+    const viewBtn = document.getElementById('viewProductBtn'); 
+    const toggleActionButtons = () => {
+        const hasSelection = !!productSelect.value;
+        if (editBtn) editBtn.disabled = !hasSelection;
+        if (delBtn) delBtn.disabled = !hasSelection;
+    };
 
-        function toggleProductButtons() {
-            const productId = productSelect.value;
-            if (editProductBtn) editProductBtn.disabled = !productId;
-            if (deleteProductBtn) deleteProductBtn.disabled = !productId;
+    async function loadProducts() {
+        try {
+            const res = await fetch('/api/products');
+            if (!res.ok) {
+                const err = await res.json().catch(() => ({}));
+                throw new Error(err.message || `Server error (${res.status})`);
+            }
+
+            const products = await res.json();
+
+            productSelect.innerHTML = '<option value="">— Select Product —</option>';
+
+            products.forEach(p => {
+                const opt = document.createElement('option');
+                opt.value = p.product_id;
+                opt.textContent = p.name || p.code || `Product ${p.product_id}`; 
+                productSelect.appendChild(opt);
+            });
+
+            productSelect.disabled = products.length === 0;
+
+            if (viewBtn) {
+                 viewBtn.disabled = products.length === 0;
+            }
+
+
+            toggleActionButtons();
+
+        } catch (err) {
+            console.error('Product load failed:', err);
+            productSelect.innerHTML = '<option value="">— Error loading —</option>';
+            productSelect.disabled = true; 
+
+            if (viewBtn) viewBtn.disabled = true;
+            if (addBtn) addBtn.disabled = true; 
+            if (editBtn) editBtn.disabled = true;
+            if (delBtn) delBtn.disabled = true;
+
+            alert(`Cannot load products: ${err.message}`);
         }
+    }
 
-        function loadProducts() {
-            fetch('/api/products')
-                .then(res => {
-                    if (!res.ok) {
-                        return res.json().then(err => { throw new Error(err.message || 'Error fetching products'); });
-                    }
-                    return res.json();
-                })
-                .then(response => {
-                    const data = response.data || []; 
-                    productSelect.innerHTML = `<option value="">-- Select Product --</option>`;
-                    if (data.length === 0) {
-                        productSelect.innerHTML = `<option value="">-- No products found --</option>`;
-                        productSelect.disabled = true;
-                        if (viewProductBtn) viewProductBtn.disabled = true;
-                    } else {
-                        data.forEach(product => {
-                            const option = document.createElement('option');
-                            option.value = product.product_id;
-                            option.textContent = product.name || product.code || 'Unnamed Product';
-                            productSelect.appendChild(option);
-                        });
-                        productSelect.disabled = false;
-                        if (viewProductBtn) viewProductBtn.disabled = false;
-                    }
-                    toggleProductButtons(); 
-                })
-                .catch(error => {
-                    console.error('Error loading products:', error);
-                    productSelect.innerHTML = `<option value="">-- Error loading products --</option>`;
-                    productSelect.disabled = true;
-                    if (viewProductBtn) viewProductBtn.disabled = true;
-                    if (addProductBtn) addProductBtn.disabled = true; 
-                    if (editProductBtn) editProductBtn.disabled = true;
-                    if (deleteProductBtn) deleteProductBtn.disabled = true;
-                    alert(`Failed to load products: ${error.message}`);
-                });
-        }
+    if (productSelect) {
+        productSelect.addEventListener('change', toggleActionButtons);
+    } else {
+        console.warn("Element with ID 'productSelect' not found. Product selection functionality may be limited.");
+    }
 
-        productSelect?.addEventListener('change', toggleProductButtons);
 
-        addProductBtn?.addEventListener('click', () => {
-            window.location.href = `/products/create`;
+    if (addBtn) {
+        addBtn.addEventListener('click', () => {
+            window.location.href = '/products/create';
         });
+    } else {
+        console.warn("Element with ID 'addProductBtn' not found. Add product functionality may be limited.");
+    }
 
-        editProductBtn?.addEventListener('click', () => {
+
+    if (editBtn) {
+        editBtn.addEventListener('click', () => {
             const productId = productSelect.value;
             if (!productId) {
-                alert("Please select a product to edit.");
+                alert('Please select a product to edit.');
                 return;
             }
             window.location.href = `/products/${productId}/edit`;
         });
+    } else {
+        console.warn("Element with ID 'editProductBtn' not found. Edit product functionality may be limited.");
+    }
 
-        deleteProductBtn?.addEventListener('click', async () => {
+
+    if (delBtn) {
+        delBtn.addEventListener('click', async () => {
             const productId = productSelect.value;
             if (!productId) {
-                alert("Please select a product to delete.");
+                alert('Please select a product to delete.');
                 return;
             }
-            if (confirm("Are you sure you want to delete this product?")) {
+
+            if (confirm(`Are you sure you want to delete product ID ${productId}? This action cannot be undone.`)) {
                 try {
-                    const response = await fetch(`/products/${productId}/delete`, {
-                        method: 'DELETE', 
+                    const response = await fetch(`/api/products/${productId}/delete`, {
+                        method: 'DELETE',
                     });
 
                     if (response.status === 204) { 
@@ -86,24 +104,33 @@
                         alert(`Failed to delete product: ${errorData.message || 'Product not found.'}`);
                     } else if (response.status === 409) {
                         const errorData = await response.json();
-                        alert(`Failed to delete product due to conflict: ${errorData.message || 'Unknown conflict.'}`);
+                        alert(`Failed to delete product due to conflict: ${errorData.message || 'Product is in use elsewhere.'}`);
                     } else {
-                        const errorData = await response.json(); 
+                        const errorData = await response.json().catch(() => ({})); 
                         alert(`Failed to delete product: ${errorData.message || `Server error (Status: ${response.status})`}`);
                         console.error('Delete failed:', errorData);
                     }
                 } catch (error) {
                     console.error('Network error during product delete:', error);
-                    alert('A network error occurred while deleting the product.');
+                    alert('A network error occurred while deleting the product. Please check your connection.');
                 }
             }
         });
+    } else {
+        console.warn("Element with ID 'deleteProductBtn' not found. Delete product functionality may be limited.");
+    }
 
-        viewProductBtn?.addEventListener('click', () => {
-            window.location.href = `/products/view`;
+
+    if (viewBtn) {
+        viewBtn.addEventListener('click', () => {
+            
+            window.location.href = '/products/view';
         });
+    } else {
+        console.warn("Element with ID 'viewProductBtn' not found. View products functionality may be limited.");
+    }
 
-        loadProducts(); 
-    });
-})(); 
 
+    
+    loadProducts();
+});

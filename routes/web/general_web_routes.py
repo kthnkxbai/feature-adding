@@ -34,29 +34,36 @@ def view_all_tenants():
         flash(f"An unexpected error occurred: {str(e)}", "danger")
         current_app.logger.exception(f"Unexpected error in view_all_tenants: {e}")
         return render_template('view.html', tenants=[])
+    
 
-@general_web_bp.route('/configure_features', methods=['GET']) # <--- GET-ONLY ROUTE
+
+@general_web_bp.route('/configure_features', methods=['GET'])
 def configure_features_page():
     """
-    Web route to display the tenant feature configuration form.
-    Loads initial data for tenants and features based on selected tenant.
+    To Load initial data for tenants and features based on selected tenant.
     """
     selected_tenant_id = request.args.get('tenant_id', type=int)
     tenants_data = []
     features_data = {'enabled_features': [], 'disabled_features': []}
+    display_tenant_name = "N/A"
 
     try:
         tenants_data = tenant_service.get_all_tenants(minimal=True)
 
         if selected_tenant_id:
             try:
+                tenant_details = tenant_service.get_tenant_by_id(selected_tenant_id)
+                display_tenant_name = tenant_details.get('tenant_name', 'N/A')
+
                 features_data = tenant_feature_service.get_features_for_tenant_with_status(selected_tenant_id)
             except (TenantNotFoundError, DatabaseOperationError, ApplicationError) as e:
                 flash(f"Error loading features for tenant {selected_tenant_id}: {e.message}", "danger")
                 current_app.logger.error(f"Error loading features for tenant {selected_tenant_id}: {e.message}", exc_info=True)
+                display_tenant_name = "Error" 
             except Exception as e:
                 flash(f"An unexpected error occurred while loading features: {str(e)}", "danger")
                 current_app.logger.exception(f"Unexpected error loading features for tenant {selected_tenant_id}: {e}")
+                display_tenant_name = "Error" 
 
     except (DatabaseOperationError, ApplicationError) as e:
         flash(f"Error loading initial page data: {e.message}", "danger")
@@ -70,10 +77,12 @@ def configure_features_page():
         tenants=tenants_data,
         selected_tenant_id=selected_tenant_id,
         enabled_features=features_data.get('enabled_features', []),
-        disabled_features=features_data.get('disabled_features', [])
+        disabled_features=features_data.get('disabled_features', []),
+        display_tenant_name=display_tenant_name 
     )
 
-@general_web_bp.route('/configure_features/submit', methods=['POST']) # <--- NEW POST-ONLY ROUTE
+
+@general_web_bp.route('/configure_features/submit', methods=['POST']) 
 def submit_feature_configuration():
     """
     Web route to handle the submission of the tenant feature configuration form.
@@ -87,7 +96,7 @@ def submit_feature_configuration():
 
     if not selected_tenant_id:
         flash("Please select a Tenant to configure features.", "warning")
-        return redirect(url_for('web_root.web_general.configure_features_page')) # Redirect back to GET page
+        return redirect(url_for('web_root.web_general.configure_features_page')) 
 
     try:
         result = tenant_feature_service.update_tenant_feature_configuration(
@@ -103,14 +112,12 @@ def submit_feature_configuration():
         flash(f"An unexpected error occurred: {str(e)}", "danger")
         current_app.logger.exception(f"Unexpected error in submit_feature_configuration POST: {e}")
 
-    # Always redirect back to the GET page, potentially with the selected tenant ID
     return redirect(url_for('web_root.web_general.configure_features_page', tenant_id=selected_tenant_id))
 
 
 @general_web_bp.route('/', methods=['GET'])
 def index_get():
     """
-    Main index page web route.
     Populates dropdowns for tenant, branch, product.
     """
     try:
@@ -155,7 +162,7 @@ def index_get():
 @general_web_bp.route('/', methods=['POST'])
 def index_post():
     """
-    Handles the submission of module configuration for a branch and product.
+    Handles the submission of module configuration for a branch and product, we can add new branch-product-module as well remove exsisiting ones.
     """
     selected_tenant_id = request.form.get('tenant_id', type=int)
     selected_branch_id = request.form.get('branch_id', type=int)
