@@ -11,7 +11,7 @@
     <!-- Custom CSS for SortableJS drag-and-drop -->
     <style>
       :root {
-            --darker-blue: #0056b3; /* Darker blue color */
+            --darker-blue: #0056b3;  
         }
         body {
             font-family: Arial, sans-serif;
@@ -21,7 +21,7 @@
         }
 
         .header-bar {
-            background-color: var(--darker-blue); /* Use darker blue */
+            background-color: var(--darker-blue); 
             color: white;
             padding: 10px 20px;
             display: flex;
@@ -31,7 +31,7 @@
             top: 0;
             z-index: 1000;
         }
-        /* MODIFIED: Header text styling */
+       
         .header-title {
             font-size: 1.2rem;
             font-weight: bold;
